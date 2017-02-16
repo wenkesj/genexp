@@ -2,14 +2,15 @@ package main
 
 import (
 	"bufio"
-  "flag"
 	"bytes"
+	"flag"
 	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/wenkesj/genes/predictor"
@@ -23,7 +24,7 @@ func insertNth(s string, n int) string {
 	var last = len(s) - 1
 	for i, c := range s {
 		buf.WriteRune(c)
-		if i % n == prev && i != last {
+		if i%n == prev && i != last {
 			buf.WriteRune('\n')
 		}
 	}
@@ -31,17 +32,22 @@ func insertNth(s string, n int) string {
 }
 
 const (
-  maxLineLength = 60
+	maxLineLength = 60
 )
 
 func main() {
-  var dirPath string
-  var threshold int
-  flag.StringVar(
-    &dirPath, "transcripts", "transcripts", "Directory containing transcripts.")
-  flag.IntVar(
-    &threshold,
-    "threshold", 150, "ORF Threshold, i.e. threshold = 1: ATG<A>TAG")
+	var dirPath, codons string
+	var threshold int
+	flag.StringVar(
+		&dirPath,
+		"transcripts", "transcripts", "Directory containing transcripts.")
+	flag.IntVar(
+		&threshold,
+		"threshold", 150, "ORF Threshold, i.e. threshold = 1: ATG<A>TAG")
+	flag.StringVar(
+		&codons,
+		"codons", "", "List of codons to determine codon usage.")
+	flag.Parse()
 
 	// Walk all files in directory and map transcript files to genome strings.
 	genomes := make(map[string]string)
@@ -75,6 +81,13 @@ func main() {
 		return nil
 	})
 
+	var triplets []string
+	if len(codons) < 1 {
+		triplets = predictor.GenerateTriplets()
+	} else {
+		triplets = strings.Split(codons, ",")
+	}
+
 	for transcript, genome := range genomes {
 		// Generate all potential ORFs from the given genome
 		matches, err := predictor.FindAllPotentialORFs(genome, threshold)
@@ -94,7 +107,6 @@ func main() {
 		// Find coding potential from all possible triplets for the MT genome
 		// excluding the start and stop codons.
 		genePredictors := make(predictor.GenePredictors, len(matches))
-		triplets := predictor.GenerateTriplets()
 		for i, match := range matches {
 			codingPotential, err := predictor.FindCodingPotential(
 				match[3:len(match)-3], triplets...)
