@@ -83,6 +83,9 @@ func FindAllPotentialORFs(genome string, threshold int) ([]string, error) {
 		return nil, err
 	}
 	matchingStartingIndices := startCodonMatcher.FindAllStringIndex(genome, -1)
+	if len(matchingStartingIndices) < 1 {
+		return nil, errors.New("No ORMs matched from start|stop codons .")
+	}
 
 	ORFs := []string{}
 	genomeLength := len(genome)
@@ -97,7 +100,7 @@ func FindAllPotentialORFs(genome string, threshold int) ([]string, error) {
 		// Starting ORF from sequence
 		sequence := genome[startOfCodon:startOffsetByThreshold]
 		matchingStopingIndices := stopCodonMatcher.FindAllStringIndex(sequence, -1)
-		if len(matchingStopingIndices) == 0 {
+		if len(matchingStopingIndices) < 1 {
 			continue
 		}
 		ORFs = append(ORFs, sequence[:maxIndex(matchingStopingIndices)+k])
