@@ -1,0 +1,178 @@
+genes
+=====
+Package a gene predictor and coding potential calculator. It comes with MT
+transcripts for the Human genome.
+
+This algorithm uses a simple strategy: find all longest possible ORFs of
+a given length threshold and then assigns a coding potential based on the usage
+of all possible triplets from the alphabet {A,C,T,G} corresponding to the
+codon usage table for human MT. The coding potential is a product of
+probabilities of finding possible codons for the given threshold.
+
+This project also includes an API friendly in which the user can change the
+parameters of the coding profiling to a specific list codons to get higher
+coding potential scores.
+
+
+Easiest Way to Get Started
+--------------------------
++ Download all the transcripts that you want to use (FASTA files) and put them
+  in a directory.
++ Download and install https://golang.org/doc/install
++ Install the CLI for this project, run this from the command-line.
+  $ go get github.com/wenkesj/genes
+
+
+Running the Program:
+--------------------
+If you have installed golang correctly, `genes` should be located in your
+systems $PATH. And you can run the defaults:
+  $ genes -transcripts=/path/to/transcripts -threshold=100
+
+Output should look like this for threshold = 150:
+
+  > ENSG00000198938.txt
+  +--------------------------------+-----------+
+  |              ORF               |  CP (%)   |
+  +--------------------------------+-----------+
+  | CCTATCATATAGTAAAACCCAGCCCATGAC | 3.13E-60% |
+  | CCCTAACAGGGGCCCTCTCAGCCCTCCTAA |           |
+  | TGACCTCCGGCCTAGCCATGTGATTTCACT |           |
+  | TCCACTCCATAACGCTCCTCATACTAGGCC |           |
+  | TACTAACCAACACACTAACCATATACCAAT |           |
+  | GA                             |           |
+  +--------------------------------+-----------+
+
+  > ENSG00000212907.txt
+  +--------------------------------+-----------+
+  |              ORF               |  CP (%)   |
+  +--------------------------------+-----------+
+  | CCTAGAAGGAATAATACTATCGCTGTTCAT | 1.58E-73% |
+  | TATAGCTACTCTCATAACCCTCAACACCCA |           |
+  | CTCCCTCTTAGCCAATATTGTGCCTATTGC |           |
+  | CATACTAGTCTTTGCCGCCTGCGAAGCAGC |           |
+  | GGTGGGCCTAGCCCTACTAG           |           |
+  +--------------------------------+-----------+
+
+  > ENSG00000198695.txt
+  +--------------------------------+-----------+
+  |              ORF               |  CP (%)   |
+  +--------------------------------+-----------+
+  | GCTATTGAGGAGTATCCTGAGGCATGGGGG | 9.27E-61% |
+  | TCAGGGGTTGAGGTCTTGGTGAGTGTTTTA |           |
+  | GTGGGGTTAGCGATGGAGGTAGGATTGGTG |           |
+  | CTGTGGGTGAAAGAGTATGATGGGGTGGTG |           |
+  | GTTGTGGTAAACTTTAATAGTGTAGGAAGC |           |
+  | TGA                            |           |
+  | CTTTGTTTCTGTTGAGTGTGGGTTTAGTAA | 5.35E-49% |
+  | TGGGGTTTGTGGGGTTTTCTTCTAAGCCTT |           |
+  | CTCCTATTTATGGGGGTTTAGTATTGATTG |           |
+  | TTAGCGGTGTGGTCGGGTGTGTTATTATTC |           |
+  | TGAATTTTGGGGGAGGTTATATGGGTTTAA |           |
+  | TAG                            |           |
+  +--------------------------------+-----------+
+
+  > ENSG00000198763.txt
+  +--------------------------------+-----------+
+  |              ORF               |  CP (%)   |
+  +--------------------------------+-----------+
+  | AATAATAGCAGTTCTACCGTACAACCCTAA | 1.64E-59% |
+  | CATAACCATTCTTAATTTAACTATTTATAT |           |
+  | TATCCTAACTACTACCGCATTCCTACTACT |           |
+  | CAACTTAAACTCCAGCACCACGACCCTACT |           |
+  | ACTATCTCGCACCTGAAACAAGCTAACATG |           |
+  | A                              |           |
+  +--------------------------------+-----------+
+
+  > ENSG00000198786.txt
+  +--------------------------------+-----------+
+  |              ORF               |  CP (%)   |
+  +--------------------------------+-----------+
+  | CCAACACAGCAGCCATTCAAGCAATCCTAT | 8.04E-68% |
+  | ACAACCGTATCGGCGATATCGGTTTCATCC |           |
+  | TCGCCTTAGCATGATTTATCCTACACTCCA |           |
+  | ACTCATGAGACCCACAACAAATAGCCCTTC |           |
+  | TAAACGCTAATCCAAGCCTCACCCCACTAC |           |
+  | TAG                            |           |
+  | TGCCTAGACCAAGAAGTTATTATCTCGAAC | 1.73E-65% |
+  | TGACACTGAGCCACAACCCAAACAACCCAG |           |
+  | CTCTCCCTAAGCTTCAAACTAGACTACTTC |           |
+  | TCCATAATATTCATCCCTGTAGCATTGTTC |           |
+  | GTTACATGGTCCATCATAGAATTCTCACTG |           |
+  | TGA                            |           |
+  +--------------------------------+-----------+
+
+  > ENSG00000198886.txt
+  +--------------------------------+-----------+
+  |              ORF               |  CP (%)   |
+  +--------------------------------+-----------+
+  | TCGAAGCCCCCATCGCTGGGTCAATAGTAC | 1.85E-73% |
+  | TTGCCGCAGTACTCTTAAAACTAGGCGGCT |           |
+  | ATGGTATAATACGCCTCACACTCATTCTCA |           |
+  | ACCCCCTGACAAAACACATAGCCTACCCCT |           |
+  | TCCTTGTACTATCCCTATGAGGCATAATTA |           |
+  | TAA                            |           |
+  +--------------------------------+-----------+
+
+  > ENSG00000198888.txt
+  +--------------------------------+-----------+
+  |              ORF               |  CP (%)   |
+  +--------------------------------+-----------+
+  | ACGCACTCTCCCCTGAACTCTACACAACAT | 2.87E-61% |
+  | ATTTTGTCACCAAGACCCTACTTCTAACCT |           |
+  | CCCTGTTCTTATGAATTCGAACAGCATACC |           |
+  | CCCGATTCCGCTACGACCAACTCATACACC |           |
+  | TCCTATGAAAAAACTTCCTACCACTCACCC |           |
+  | TAG                            |           |
+  +--------------------------------+-----------+
+
+  > ENSG00000198712.txt
+  +--------------------------------+-----------+
+  |              ORF               |  CP (%)   |
+  +--------------------------------+-----------+
+  | AGCTGTCCCCACATTAGGCTTAAAAACAGA | 8.46E-84% |
+  | TGCAATTCCCGGACGTCTAAACCAAACCAC |           |
+  | TTTCACCGCTACACGACCGGGGGTATACTA |           |
+  | CGGTCAATGCTCTGAAATCTGTGGAGCAAA |           |
+  | CCACAGTTTCATGCCCATCGTCCTAGAATT |           |
+  | AA                             |           |
+  | GCACATGCAGCGCAAGTAGGTCTACAAGAC | 1.18E-66% |
+  | GCTACTTCCCCTATCATAGAAGAGCTTATC |           |
+  | ACCTTTCATGATCACGCCCTCATAATCATT |           |
+  | TTCCTTATCTGCTTCCTAGTCCTGTATGCC |           |
+  | CTTTTCCTAACACTCACAACAAAACTAACT |           |
+  | AA                             |           |
+  +--------------------------------+-----------+
+
+  > ENSG00000198804.txt
+  +--------------------------------+-----------+
+  |              ORF               |  CP (%)   |
+  +--------------------------------+-----------+
+  | GTCTGAGCTATGATATCAATTGGCTTCCTA | 2.28E-79% |
+  | GGGTTTATCGTGTGAGCACACCATATATTT |           |
+  | ACAGTAGGAATAGACGTAGACACACGAGCA |           |
+  | TATTTCACCTCCGCTACCATAATCATCGCT |           |
+  | ATCCCCACCGGCGTCAAAGTATTTAGCTGA |           |
+  +--------------------------------+-----------+
+
+  > ENSG00000198840.txt
+  +--------------------------------+-----------+
+  |              ORF               |  CP (%)   |
+  +--------------------------------+-----------+
+  | AGCCCTACAAACAACTAACCTGCCACTAAT | 1.22E-57% |
+  | AGTTATGTCATCCCTCTTATTAATCATCAT |           |
+  | CCTAGCCCTAAGTCTGGCCTATGAGTGACT |           |
+  | ACAAAAAGGATTAGACTGA            |           |
+  +--------------------------------+-----------+
+
+  > ENSG00000198899.txt
+  +--------------------------------+-----------+
+  |              ORF               |  CP (%)   |
+  +--------------------------------+-----------+
+  | GCCATCCCCTTATGAGCGGGCACAGTGATT | 2.33E-68% |
+  | ATAGGCTTTCGCTCTAAGATTAAAAATGCC |           |
+  | CTAGCCCACTTCTTACCACAAGGCACACCT |           |
+  | ACACCCCTTATCCCCATACTAGTTATTATC |           |
+  | GAAACCATCAGCCTACTCATTCAACCAATA |           |
+  | G                              |           |
+  +--------------------------------+-----------+
