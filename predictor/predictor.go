@@ -5,8 +5,10 @@ package predictor
 // GenePredictor is a sortable generic data structure used to identify a set of
 // sequence ORFs and corresponding coding potentials.
 type GenePredictor struct {
-	Sequence        string
-	CodingPotential float64
+	Sequence           string
+	TranscriptMatch    string
+	TranscriptDistance int
+	CodingPotential    float64
 }
 
 type GenePredictors []*GenePredictor
@@ -20,5 +22,5 @@ func (g GenePredictors) Swap(i, j int) {
 }
 
 func (g GenePredictors) Less(i, j int) bool {
-	return g[i].CodingPotential < g[j].CodingPotential
+	return g[i].TranscriptDistance > g[j].TranscriptDistance
 }

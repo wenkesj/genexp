@@ -40,38 +40,9 @@ func GenerateTriplets() []string {
 		tripletString[:len(tripletString)-len("\n")], "\n")
 }
 
-// maxIndex finds the greatest valued integer from a 2D slice of index ranges.
-func maxIndex(array [][]int) int {
-	maxValue := array[0][0]
-	for _, subArray := range array {
-		value := subArray[0]
-		if value > maxValue {
-			maxValue = value
-		}
-	}
-	return maxValue
-}
-
-func maxORFs(array []string) []string {
-	maxs := []string{}
-	maxValue := array[0]
-	for _, value := range array {
-		if len(value) > len(maxValue) {
-			maxValue = value
-		}
-	}
-
-	for _, value := range array {
-		if len(value) == len(maxValue) {
-			maxs = append(maxs, value)
-		}
-	}
-	return maxs
-}
-
 // FindAllPotentialORFs matches start "ATG" codon and stop "TGA", "TAG", "TAA" codons.
 // Returns all matches, error if none.
-func FindAllPotentialORFs(genome string, threshold int) ([]string, error) {
+func FindAllPotentialORFs(genome string, thresholds []int) ([]string, error) {
 	stopCodons := []string{"TAA", "TAG", "TGA"}
 	k := len(stopCodons[0])
 	startCodonMatcher, err := regexp.Compile("ATG")
@@ -84,33 +55,44 @@ func FindAllPotentialORFs(genome string, threshold int) ([]string, error) {
 	}
 	matchingStartingIndices := startCodonMatcher.FindAllStringIndex(genome, -1)
 	if len(matchingStartingIndices) < 1 {
-		return nil, errors.New("No ORMs matched from start|stop codons .")
+		return nil, errors.New("No ORMs matched from start codons .")
+	}
+
+	matchingStopingIndices := stopCodonMatcher.FindAllStringIndex(genome, -1)
+	if len(matchingStopingIndices) < 1 {
+		return nil, errors.New("No ORMs matched from stop codons .")
 	}
 
 	ORFs := []string{}
 	genomeLength := len(genome)
 	for _, startIndex := range matchingStartingIndices {
-		startOfCodon := startIndex[1]
-		startOffsetByThreshold := startOfCodon + threshold + k
-		// Check if the next possible ORF is at the end, if so quit
-		if startOffsetByThreshold-genomeLength > 0 {
-			startOffsetByThreshold = genomeLength - 1
-		}
+		startOfCodon := startIndex[0]
+		startOffsetByThreshold := startOfCodon + thresholds[0] + k
 
-		// Starting ORF from sequence
-		sequence := genome[startOfCodon:startOffsetByThreshold]
-		matchingStopingIndices := stopCodonMatcher.FindAllStringIndex(sequence, -1)
-		if len(matchingStopingIndices) < 1 {
+		// Filter out codons that are below the threshold already.
+		if startOffsetByThreshold > genomeLength {
 			continue
 		}
-		ORFs = append(ORFs, sequence[:maxIndex(matchingStopingIndices)+k])
+
+		// Finding ORFs
+		for _, stopIndex := range matchingStopingIndices {
+			stopOfCodon := stopIndex[1]
+			orfLength := stopOfCodon - startOfCodon
+			if orfLength > 0 {
+				if orfLength >= thresholds[0] {
+					if orfLength < thresholds[1] || thresholds[1] == -1 {
+						ORFs = append(ORFs, genome[startOfCodon:stopOfCodon])
+					}
+				}
+			}
+		}
 	}
 
 	if len(ORFs) < 1 {
 		return nil, errors.New("No ORMs matched from start|stop codons .")
 	}
 
-	return maxORFs(ORFs), nil
+	return ORFs, nil
 }
 
 // FindCodingPotential generates a codon usage table from the given ORF and
