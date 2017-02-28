@@ -193,16 +193,16 @@ func main() {
 		wait := new(sync.WaitGroup)
 		for transcriptId, transcript := range transcripts {
 			wait.Add(1)
-			go func() {
+			go func(wait *sync.WaitGroup, t, id string) {
 				defer wait.Done()
-				if len(transcript) > len(match) + 10 ||
-						len(transcript) < len(match) - 10 {
+				if len(t) > len(match) + 10 ||
+						len(t) < len(match) - 10 {
 					return
 				}
 				distance := levenshtein.DistanceForStrings(
-					[]rune(match), []rune(transcript), levenshtein.DefaultOptions)
-				distanceChannel <- &Distance{distance, transcriptId}
-			}()
+					[]rune(match), []rune(t), levenshtein.DefaultOptions)
+				distanceChannel <- &Distance{distance, id}
+			}(wait, transcript, transcriptId)
 		}
 		wait.Wait()
 		close(distanceChannel)
