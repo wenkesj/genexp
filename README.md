@@ -1,5 +1,7 @@
 # genexp
 
+[![GoDoc](https://godoc.org/github.com/wenkesj/genexp?status.svg)](https://godoc.org/github.com/wenkesj/genexp)
+
 Package `genexp` includes an API for gene expression analysis using methods I
 learn over the bioinformatics course. It comes with MT transcripts and
 chromosome for the Human genome. Everything is a WIP, don't expect to find
