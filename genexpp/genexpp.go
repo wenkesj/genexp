@@ -8,30 +8,14 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	// "sort"
 	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/texttheater/golang-levenshtein/levenshtein"
-	"github.com/wenkesj/genes/predictor"
+	"github.com/wenkesj/genexp"
 )
-
-// Adapted from: http://stackoverflow.com/questions/33633168/ \
-// how-to-insert-a-character-every-x-characters-in-a-string-in-golang
-func insertNth(s string, n int) string {
-	var buf bytes.Buffer
-	var prev = n - 1
-	var last = len(s) - 1
-	for i, c := range s {
-		buf.WriteRune(c)
-		if i%n == prev && i != last {
-			buf.WriteRune('\n')
-		}
-	}
-	return buf.String()
-}
 
 const (
 	maxLineLength = 60
@@ -53,16 +37,6 @@ func minDistance(distances chan *Distance) *Distance {
 		}
 	}
 	return minDistance
-}
-
-func maxORF(array []string) string {
-	maxValue := array[0]
-	for _, value := range array {
-		if len(value) > len(maxValue) {
-			maxValue = value
-		}
-	}
-	return maxValue
 }
 
 func main() {
@@ -124,14 +98,14 @@ func main() {
 	}
 
 	// Generate all potential ORFs from the given genome
-	matches, err := predictor.FindAllPotentialORFs(genome, orflengthsInt)
+	matches, err := genexp.FindAllPotentialORFs(genome, orflengthsInt)
 	if err != nil {
 		panic(err)
 	}
 
 	var triplets []string
 	if len(codons) < 1 {
-		triplets = predictor.GenerateTriplets()
+		triplets = genexp.GenerateTriplets()
 	} else {
 		triplets = strings.Split(codons, ",")
 	}
@@ -180,9 +154,9 @@ func main() {
 	// Find coding potential from all possible triplets for the MT genome
 	// excluding the start and stop codons.
 	fmt.Printf("Matches: %d\n", len(matches))
-	genePredictors := make(predictor.GenePredictors, len(matches))
+	genePredictors := make(genexp.GenePredictors, len(matches))
 	for i, match := range matches {
-		codingPotential, err := predictor.FindCodingPotential(
+		codingPotential, err := genexp.FindCodingPotential(
 			match[3:len(match)-3], triplets...)
 		if err != nil {
 			panic(err)
@@ -195,8 +169,8 @@ func main() {
 			wait.Add(1)
 			go func(wait *sync.WaitGroup, t, id string) {
 				defer wait.Done()
-				if len(t) > len(match) + 10 ||
-						len(t) < len(match) - 10 {
+				if len(t) > len(match)+10 ||
+					len(t) < len(match)-10 {
 					return
 				}
 				distance := levenshtein.DistanceForStrings(
@@ -210,7 +184,7 @@ func main() {
 		minTranscriptDistance := minDistance(distanceChannel)
 		if minTranscriptDistance != nil {
 			genePredictors = append(genePredictors,
-				&predictor.GenePredictor{
+				&genexp.GenePredictor{
 					match, minTranscriptDistance.id,
 					minTranscriptDistance.distance, codingPotential})
 		}

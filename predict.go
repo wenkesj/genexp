@@ -1,4 +1,4 @@
-package predictor
+package genexp
 
 import (
 	"bytes"
@@ -6,24 +6,29 @@ import (
 	"math"
 	"regexp"
 	"strings"
-
-	"github.com/fatih/color"
 )
 
-func generateAllPossibleStrings(
-	maxLength int, alphabet []string,
-	tripletBuffer, reuseBuffer *bytes.Buffer) {
-	if reuseBuffer.Len() == maxLength {
-		tripletBuffer.WriteString(reuseBuffer.String() + "\n")
-	} else {
-		for _, char := range alphabet {
-			oldCurr := bytes.NewBufferString(reuseBuffer.String())
-			reuseBuffer.WriteString(char)
-			generateAllPossibleStrings(maxLength, alphabet, tripletBuffer, reuseBuffer)
-			reuseBuffer.Reset()
-			reuseBuffer.WriteString(oldCurr.String())
-		}
-	}
+// GenePredictor is a sortable generic data structure used to identify a set of
+// sequence ORFs and corresponding coding potentials.
+type GenePredictor struct {
+	Sequence           string
+	TranscriptMatch    string
+	TranscriptDistance int
+	CodingPotential    float64
+}
+
+type GenePredictors []*GenePredictor
+
+func (g GenePredictors) Len() int {
+	return len(g)
+}
+
+func (g GenePredictors) Swap(i, j int) {
+	g[i], g[j] = g[j], g[i]
+}
+
+func (g GenePredictors) Less(i, j int) bool {
+	return g[i].TranscriptDistance > g[j].TranscriptDistance
 }
 
 // GenerateTriplets generates the cartesian product of a string for a given
@@ -131,31 +136,4 @@ func FindCodonUsage(sequence string, codons ...string) (map[string]int, error) {
 		codonUsage[codon] = len(codonMatcher.FindAll([]byte(sequence), -1))
 	}
 	return codonUsage, nil
-}
-
-// ColorSequence colors a target string within a sequence a certain color.
-// Returns the colored string.
-func ColorSequence(c, sequence string, targets ...string) string {
-	var colorString func(a ...interface{}) string
-	switch strings.ToLower(c) {
-	case "blue":
-		colorString = color.New(color.FgBlue).SprintFunc()
-		break
-	case "yellow":
-		colorString = color.New(color.FgYellow).SprintFunc()
-		break
-	case "red":
-		colorString = color.New(color.FgRed).SprintFunc()
-		break
-	case "green":
-		colorString = color.New(color.FgGreen).SprintFunc()
-		break
-	default:
-		colorString = color.New(color.FgBlue).SprintFunc()
-	}
-	var copySequence string
-	for _, target := range targets {
-		copySequence = strings.Replace(sequence, target, colorString(target), -1)
-	}
-	return copySequence
 }
